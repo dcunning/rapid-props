@@ -21,7 +21,7 @@ module RapidProps
         extend ::RSpec::Matchers::DSL
 
         def builder(klass = TestClass)
-          RapidProps::Builder.new(klass, klass.properties)
+          RapidProps::Builder.new(klass)
         end
 
         def property(id = "test_property", **kargs)

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module RapidProps
+  # A set of property definitions.
   class Schema
     attr_reader :klass
 

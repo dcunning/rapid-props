@@ -175,6 +175,36 @@ RSpec.describe RapidProps::EmbedsOneProperty, type: :property do
     end
   end
 
+  describe "explicitly defined class" do
+    class self::Person < RapidProps::EmbeddedChild
+      properties do |p|
+        p.string :name
+      end
+    end
+
+    class self::Page
+      include RapidProps::Container
+
+      properties do |p|
+        p.embeds_one :author, class_name: module_parent::Person.name
+      end
+    end
+
+    it "doesn't define a new subclass" do
+      expect(self.class::Page.properties[:author].child_class).to eql(self.class::Person)
+    end
+
+    it "doesn't allow adding properties to an existing class" do
+      expect{
+        self.class::Page.properties do |p|
+          p.embeds_one :editor, class_name: self.class::Person.name do |o|
+            o.string :email
+          end
+        end
+      }.to raise_error(ArgumentError, "you cannot use class_name with a new properties block")
+    end
+  end
+
   describe "implicitly defined class with a superclass" do
     class self::Person < RapidProps::EmbeddedChild
       properties do |p|

@@ -3,40 +3,7 @@
 require "active_support/core_ext/string/inflections"
 
 module RapidProps
-  # = Embeds many property definition
-  #
-  # Nested arrays.
-  #
-  # Minimum usage that automatically creates a child class:
-  #
-  #   properties do |p|
-  #     p.embeds_many :tags do |t|
-  #       t.string :name
-  #     end
-  #   end
-  #
-  # === Options
-  #
-  # The declaration can also include an +options+ hash to specialize the behavior of the property
-  #
-  # Options are:
-  # [:default]
-  #   An array of property hashes that pre-populate this association.
-  # [:key]
-  #   Specify a property of the child class with unique values that will drive an optimized `#find` method
-  #   on the association.
-  # [:class_name]
-  #   Specify the name of a predefined class this association must use.
-  # [:polymorphic]
-  #   Specify whether subclasses are supported.
-  # [:superclass]
-  #   Specify a required superclass for all instances of this association.
-  # [:scalar]
-  #   If `true`, instances of this association don't have their own properties: they are just a value
-  #   onto themselves (like a `String` or `Integer`).
-  # [:method_name]
-  #   The method used to access this property. By default it is the property's `id`. Especially useful
-  #   when the property's name conflicts with built-in Ruby object methods (like `hash` or `method`).
+  # Internal class used to define embeds_many properties
   class EmbedsManyProperty < Property
     TYPE = "embeds_many"
 
@@ -193,6 +160,39 @@ module RapidProps
     module Builder
       # rubocop:disable Metrics/MethodLength
       # rubocop:disable Metrics/ParameterLists
+
+      # Embeds many property definition: nested arrays.
+      #
+      # Minimum usage that automatically creates a child class:
+      #
+      #   properties do |p|
+      #     p.embeds_many :tags do |t|
+      #       t.string :name
+      #     end
+      #   end
+      #
+      # === Options
+      #
+      # The declaration can also include an +options+ hash to specialize the behavior of the property
+      #
+      # Options are:
+      # [:default]
+      #   An array of property hashes that pre-populate this association.
+      # [:key]
+      #   Specify a property of the child class with unique values that will drive an optimized `#find` method
+      #   on the association.
+      # [:class_name]
+      #   Specify the name of a predefined class this association must use.
+      # [:polymorphic]
+      #   Specify whether subclasses are supported.
+      # [:superclass]
+      #   Specify a required superclass for all instances of this association.
+      # [:scalar]
+      #   If `true`, instances of this association don't have their own properties: they are just a value
+      #   onto themselves (like a `String` or `Integer`).
+      # [:method_name]
+      #   The method used to access this property. By default it is the property's `id`. Especially useful
+      #   when the property's name conflicts with built-in Ruby object methods (like `hash` or `method`).
       def embeds_many(id,
                       default: nil,
                       null: true,
@@ -204,6 +204,8 @@ module RapidProps
                       method_name: id,
                       &block)
         klass.send(:include, InstanceMethods)
+
+        raise ArgumentError, "you cannot use class_name with a new properties block" if class_name && block_given?
 
         prop = EmbedsManyProperty.new(
           id,
@@ -220,7 +222,7 @@ module RapidProps
             klass:,
             polymorphic:,
             superclass:,
-            child_class_name: class_name || define_child_class(id.to_s.camelize.singularize, &block).name,
+            child_class_name: class_name || define_child_class(id.to_s.camelize.singularize, superclass:, &block).name,
           ),
         )
 
@@ -229,13 +231,13 @@ module RapidProps
         add_property(prop, skip_validation: true)
 
         unless scalar
-          klass.define_method :"#{prop.reader_name}_properties" do
+          define_method :"#{prop.reader_name}_properties" do
             read_property(id)&.map(&:properties)
           end
 
           validation_method = :"validate_embeds_many_#{prop.reader_name}"
-          klass.validate(validation_method)
-          klass.define_method(validation_method) do
+          validate(validation_method)
+          define_method(validation_method) do
             validate_embeds_many(id)
           end
         end

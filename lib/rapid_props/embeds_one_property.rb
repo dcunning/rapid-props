@@ -3,6 +3,7 @@
 require "active_support/core_ext/string/inflections"
 
 module RapidProps
+  # Internal class used to define embeds_one properties
   class EmbedsOneProperty < Property
     TYPE = "embeds_one"
 
@@ -110,6 +111,36 @@ module RapidProps
     module Builder
       # rubocop:disable Metrics/ParameterLists
       # rubocop:disable Metrics/MethodLength
+
+      # Embeds one property definition: nested hash.
+      #
+      # Minimum usage that automatically creates a child class:
+      #
+      #   properties do |p|
+      #     p.embeds_one :author do |t|
+      #       t.string :name
+      #     end
+      #   end
+      #
+      # === Options
+      #
+      # The declaration can also include an +options+ hash to specialize the behavior of the property
+      #
+      # Options are:
+      # [:default]
+      #   A hash of properties that pre-populate this association.
+      # [:null]
+      #   When explicitly +false+ this property will raise an error when setting the property to a +nil+
+      #   or when the property value is not specified.
+      # [:class_name]
+      #   Specify the name of a predefined class this association must use.
+      # [:polymorphic]
+      #   Specify whether subclasses are supported.
+      # [:superclass]
+      #   Specify a required superclass for all instances of this association.
+      # [:method_name]
+      #   The method used to access this property. By default it is the property's `id`. Especially useful
+      #   when the property's name conflicts with built-in Ruby object methods (like `hash` or `method`).
       def embeds_one(id,
                      default: nil,
                      null: true,
@@ -119,6 +150,8 @@ module RapidProps
                      method_name: id,
                      &block)
         klass.send(:include, InstanceMethods)
+
+        raise ArgumentError, "you cannot use class_name with a new properties block" if class_name && block_given?
 
         prop = EmbedsOneProperty.new(
           id,
@@ -137,13 +170,13 @@ module RapidProps
         define_embeds_one_writer(prop)
         define_build_method(prop)
 
-        klass.define_method :"#{id}_properties" do
+        define_method :"#{id}_properties" do
           read_property(id)&.properties
         end
 
         validation_method = :"validate_embeds_one_#{id}"
-        klass.validate(validation_method)
-        klass.define_method(validation_method) do
+        validate(validation_method)
+        define_method(validation_method) do
           validate_embeds_one(id)
         end
 

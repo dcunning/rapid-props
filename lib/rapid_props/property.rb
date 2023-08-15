@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module RapidProps
+  # Base class of a property definition.
   class Property
     TYPE = nil
 
@@ -16,7 +17,7 @@ module RapidProps
     # TODO: support dynamic `null/required` value
     # rubocop:disable Metrics/ParameterLists
     def initialize(id,
-                   klass:,
+                   klass: nil,
                    reader_name: nil,
                    writer_name: (:"#{reader_name}=" if reader_name),
                    default: nil,
@@ -25,8 +26,8 @@ module RapidProps
       @klass = klass
       @default = default
       @required = !null
-      @reader_name = reader_name
-      @writer_name = writer_name
+      @reader_name = reader_name if klass
+      @writer_name = writer_name if klass
     end
     # rubocop:enable Metrics/ParameterLists
 

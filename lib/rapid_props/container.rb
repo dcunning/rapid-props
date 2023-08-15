@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module RapidProps
+  # This is the base module for a class that contains properties.
   module Container
     def self.included(base)
       base.class_eval do
@@ -216,7 +217,7 @@ module RapidProps
       end
 
       def def_properties(&)
-        Builder.new(self, properties, &)
+        Builder.new(self, schema: properties, &)
       end
 
       def find_property(id)

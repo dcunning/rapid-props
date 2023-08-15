@@ -14,6 +14,7 @@ RSpec.describe RapidProps::EmbedsOneProperty, type: :property do
       end
     end
 
+
     let(:klass) { self.class::Page }
     let(:property) { klass.find_property(:authors) }
     let(:author) { klass::Author.new(name: "Dan Cunning") }
@@ -56,6 +57,63 @@ RSpec.describe RapidProps::EmbedsOneProperty, type: :property do
 
     it "doesn't add the type when serializing" do
       expect(property.serialize([author])).to eql([{ "name" => "Dan Cunning" }])
+    end
+  end
+
+  describe "implicitly defined class with a superclass" do
+    class self::Comment < RapidProps::EmbeddedChild
+      properties do |p|
+        p.string :body
+      end
+    end
+
+    class self::Page
+      include RapidProps::Container
+
+      properties do |p|
+        p.embeds_many :comments, superclass: module_parent::Comment, polymorphic: true do |o|
+          o.string :email, null: false
+        end
+      end
+    end
+
+    it "defines a new subclass of the superclass" do
+      expect(self.class::Page::Comment.superclass).to eql(self.class::Comment)
+    end
+
+    it "doesn't modify superclass' properties" do
+      expect(self.class::Comment.properties.map(&:id)).to eql(%i[body])
+      expect(self.class::Page::Comment.properties.map(&:id)).to eql(%i[body email])
+    end
+  end
+
+  describe "explicitly defined class" do
+    class self::Comment < RapidProps::EmbeddedChild
+      properties do |p|
+        p.string :body
+      end
+    end
+
+    class self::Page
+      include RapidProps::Container
+
+      properties do |p|
+        p.embeds_many :comments, class_name: module_parent::Comment.name
+      end
+    end
+
+    it "doesn't define a new subclass" do
+      expect(self.class::Page.properties[:comments].child_class).to eql(self.class::Comment)
+    end
+
+    it "doesn't allow adding properties to an existing class" do
+      expect{
+        self.class::Page.properties do |p|
+          p.embeds_many :additional_comments, class_name: self.class::Comment.name do |o|
+            o.string :name
+          end
+        end
+      }.to raise_error(ArgumentError, "you cannot use class_name with a new properties block")
     end
   end
 

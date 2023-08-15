@@ -3,19 +3,11 @@
 require "active_support/duration"
 
 module RapidProps
-  # = Duration property definition
-  #
-  # Minimum usage:
-  #
-  #   properties do |p|
-  #     p.duration :ttl
-  #   end
-  #
-  # TODO: document options
+  # Internal class used to parse and serialize duration properties
   class DurationProperty < Property
     TYPE = "duration"
 
-    REGEX = /\A([0-9\.]+)\ ([a-z]+)\Z/
+    REGEX = /\A([0-9\.\,]+)\ ([a-z]+)\Z/
     UNITS = %w[seconds minutes hours days months years].freeze
 
     # rubocop:disable Lint/UnusedMethodArgument
@@ -42,8 +34,33 @@ module RapidProps
     end
     # rubocop:enable Lint/UnusedMethodArgument
 
-    # :nodoc:
+    # Defines duration properties
     module Builder
+      # Duration property definition
+      #
+      # === Valid values
+      #
+      # Values not listed below will raise an RapidProps::InvalidPropertyError error.
+      #
+      #   # valid values:
+      #   # any instance of ActiveSupport::Duration with more than one part
+      #   ["10 seconds", "1.4 minutes", "400 hours", "1 day", "5 months", "2,000 years"]
+      #
+      #   # invalid values:
+      #   ["10 parsecs", "1"]
+      #
+      # === Options
+      #
+      # The declaration can also include an +options+ hash to specialize the behavior of the property
+      # [:default]
+      #   Specify the default value for this property. This argument will be passed into the +#parse+
+      #   function and supports a +proc+ that calculates the default value given the parent object.
+      # [:null]
+      #   When explicitly +false+ this property will raise an error when setting the property to a +nil+
+      #   or when the property value is not specified.
+      # [:method_name]
+      #   The method used to access this property. By default it is the property's +id+. Especially useful
+      #   when the property's name conflicts with built-in Ruby object methods (like +hash+ or +method+).
       def duration(id, default: nil, null: true, method_name: id)
         prop = DurationProperty.new(
           id,
@@ -65,7 +82,7 @@ module RapidProps
       def parse_string(value)
         raise InvalidPropertyError, value unless REGEX =~ value
 
-        amount = Regexp.last_match(1)
+        amount = Regexp.last_match(1).remove(",")
         unit = Regexp.last_match(2)
         unit = "#{unit}s" unless unit[unit.length - 1] == "s"
         raise InvalidPropertyError, value unless UNITS.include?(unit)

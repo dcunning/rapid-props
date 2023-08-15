@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module RapidProps
+  # Base class for embeds_one instances.
   class EmbeddedChild
     include Container
 

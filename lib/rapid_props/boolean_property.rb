@@ -1,36 +1,7 @@
 # frozen_string_literal: true
 
 module RapidProps
-  # = Boolean property definition
-  #
-  # Minimum usage:
-  #
-  #   properties do |p|
-  #     p.boolean :enabled
-  #   end
-  #
-  # == Valid values
-  #
-  # Values not listed below will raise an RapidProps::InvalidPropertyError error.
-  #
-  #   # true values
-  #   [true, 1, "1", "t", "T", "true", "on", "ON"]
-  #
-  #   # false values
-  #   [false, 0, "0", "f", "F", "false", "FALSE", "off", "OFF"]
-  #
-  # === Options
-  #
-  # The declaration can also include an +options+ hash to specialize the behavior of the property
-  # [:default]
-  #   Specify the default value for this property. This argument will be passed into the +#parse+
-  #   function and supports a +proc+ that calculates the default value given the parent object.
-  # [:null]
-  #   When explicitly +false+ this property will raise an error when setting the property to a +nil+
-  #   or when the property value is not specified.
-  # [:method_name]
-  #   The method used to access this property. By default it is the property's +id+. Especially useful
-  #   when the property's name conflicts with built-in Ruby object methods (like +hash+ or +method+).
+  # Internal class used to parse and serialize boolean properties
   class BooleanProperty < Property
     TYPE = "boolean"
 
@@ -73,8 +44,32 @@ module RapidProps
     end
     # rubocop:enable Lint/UnusedMethodArgument
 
-    # :nodoc:
+    # Defines boolean properties
     module Builder
+      # Defines a boolean property
+      #
+      # === Valid values
+      #
+      # Values not listed below will raise an RapidProps::InvalidPropertyError error.
+      #
+      #   # true values
+      #   [true, 1, "1", "t", "T", "true", "on", "ON"]
+      #
+      #   # false values
+      #   [false, 0, "0", "f", "F", "false", "FALSE", "off", "OFF"]
+      #
+      # === Options
+      #
+      # The declaration can also include an +options+ hash to specialize the behavior of the property
+      # [:default]
+      #   Specify the default value for this property. This argument will be passed into the +#parse+
+      #   function and supports a +proc+ that calculates the default value given the parent object.
+      # [:null]
+      #   When explicitly +false+ this property will raise an error when setting the property to a +nil+
+      #   or when the property value is not specified.
+      # [:method_name]
+      #   The method used to access this property. By default it is the property's +id+. Especially useful
+      #   when the property's name conflicts with built-in Ruby object methods (like +hash+ or +method+).
       def boolean(id, default: nil, null: true, method_name: id)
         prop = BooleanProperty.new(
           id,
@@ -88,11 +83,11 @@ module RapidProps
         define_writer(prop)
         add_property(prop, skip_validation: true)
 
-        klass.alias_method "#{prop.reader_name}?", prop.reader_name
+        alias_method "#{prop.reader_name}?", prop.reader_name
 
         if prop.required?
           # https://api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html#method-i-validates_presence_of
-          klass.validates_inclusion_of(prop.reader_name, in: [true, false])
+          validates_inclusion_of prop.reader_name, in: [true, false]
         end
 
         prop

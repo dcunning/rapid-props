@@ -40,6 +40,10 @@ RSpec.describe RapidProps::DurationProperty, type: :property do
       expect(property.parse("2 years")).to eql(two_years)
     end
 
+    it "allows commas years" do
+      expect(property.parse("2,000 years")).to eql(ActiveSupport::Duration.years(2000))
+    end
+
     it "recognizes the singular version of all units" do
       expect(property.parse("1 year")).to eql(ActiveSupport::Duration.years(1))
     end

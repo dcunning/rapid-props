@@ -3,6 +3,7 @@
 require "uri"
 
 module RapidProps
+  # Internal class used to parse and serialize URL properties
   class UrlProperty < Property
     TYPE = "url"
 
@@ -27,6 +28,27 @@ module RapidProps
 
     # :nodoc:
     module Builder
+      # URL property definition
+      #
+      # === Valid values
+      #
+      # Values not listed below will raise an RapidProps::InvalidPropertyError error.
+      #
+      #   # valid values:
+      #   # any instance of URI::Generic or a string acceptable to the `URI` method.
+      #
+      # === Options
+      #
+      # The declaration can also include an +options+ hash to specialize the behavior of the property
+      # [:default]
+      #   Specify the default value for this property. This argument will be passed into the +#parse+
+      #   function and supports a +proc+ that calculates the default value given the parent object.
+      # [:null]
+      #   When explicitly +false+ this property will raise an error when setting the property to a +nil+
+      #   or when the property value is not specified.
+      # [:method_name]
+      #   The method used to access this property. By default it is the property's +id+. Especially useful
+      #   when the property's name conflicts with built-in Ruby object methods (like +hash+ or +method+).
       def url(id, default: nil, null: true, method_name: id)
         prop = UrlProperty.new(
           id,

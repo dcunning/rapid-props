@@ -1,7 +1,27 @@
 # frozen_string_literal: true
 
 module RapidProps
+  # Provides syntatic sugar for defining all the property implementations in this gem.
+  # An instance of this class is passed to the code defining properties.
+  #
+  # To support only a subset of property types offered by this library:
+  #
+  #   class MyBuilder
+  #     include RapidProps::BuilderSupport
+  #
+  #     # only the ones you want
+  #     include RapidProps::DateProperty::Builder
+  #   end
+  #
+  # To add support for new property types while retaining all the existing properties defined
+  # by this gem:
+  #
+  #   class MyBuilder < RapidProps::Builder
+  #     include MyPropertyType::Builder
+  #   end
   class Builder
+    include BuilderSupport
+
     include BooleanProperty::Builder
     include DateProperty::Builder
     include DatetimeProperty::Builder
@@ -14,38 +34,5 @@ module RapidProps
     include IntegerProperty::Builder
     include StringProperty::Builder
     include UrlProperty::Builder
-
-    attr_reader :klass
-    attr_reader :properties
-
-    def initialize(klass, properties)
-      @klass = klass
-      @properties = properties
-      yield(self) if block_given?
-    end
-
-    def add_property(property, skip_validation: false)
-      raise PropertyAlreadyExists, property.id if properties.key?(property.id)
-
-      klass.validates_presence_of(property.reader_name) if property.required? && !skip_validation
-
-      properties[property.id] = property
-    end
-
-    def define_reader(property)
-      if klass.instance_methods.include?(property.reader_name)
-        raise MethodAlreadyExistsError, "#{property.reader_name} method exists"
-      end
-
-      klass.define_method(property.reader_name) do
-        read_property(property.id)
-      end
-    end
-
-    def define_writer(property)
-      klass.define_method(property.writer_name) do |value|
-        write_property(property.id, value)
-      end
-    end
   end
 end
