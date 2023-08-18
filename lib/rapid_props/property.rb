@@ -39,8 +39,11 @@ module RapidProps
       raise NotImplementedError
     end
 
-    def default_for(context)
-      default = detect_default_method(context) || @default
+    def dynamic?(value)
+      value.is_a?(Proc) || value.is_a?(Symbol)
+    end
+
+    def default_for(context, default: detect_default_method(context) || @default)
       result = @default
 
       case default

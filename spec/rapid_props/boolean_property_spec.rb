@@ -17,7 +17,7 @@ RSpec.describe RapidProps::BooleanProperty, type: :property do
     end
 
     RapidProps::BooleanProperty::RECOGNIZED_STRINGS.each do |value, result|
-      it "cast #{value.inspect} to #{result.inspect}" do
+      it "casts #{value.inspect} to #{result.inspect}" do
         expect(property.parse(value)).to eql(result)
       end
     end

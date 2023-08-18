@@ -45,6 +45,8 @@ module RapidProps
       #   The method used to access this property. By default it is the property's `id`. Especially useful
       #   when the property's name conflicts with built-in Ruby object methods (like `hash` or `method`).
       def hash(id, default: nil, null: true, method_name: id)
+        klass.send(:include, InstanceMethods)
+
         prop = HashProperty.new(
           id,
           klass:,
@@ -57,24 +59,31 @@ module RapidProps
         define_writer(prop)
         add_property(prop, skip_validation: true)
 
-        if prop.required?
-          m = define_required_hash_method(prop)
-          klass.validate(m)
-        end
+        validate_required_hash_property(prop) if prop.required?
 
         prop
       end
 
     private
 
-      def define_required_hash_method(prop)
+      def validate_required_hash_property(prop)
         name = :"validates_presence_of_#{prop.reader_name}"
 
-        define_method(name) do
-          value = send(prop.reader_name)
-
-          errors.add(prop.id, :blank) unless value
+        define_method name do
+          validates_presence_of_hash_property(prop.id)
         end
+
+        validate name
+      end
+    end
+
+    # :nodoc:
+    module InstanceMethods
+      def validates_presence_of_hash_property(id)
+        property = self.class.find_property(id)
+        value = send(property.reader_name)
+
+        errors.add(property.id, :blank) unless value
       end
     end
   end

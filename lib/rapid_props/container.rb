@@ -75,6 +75,11 @@ module RapidProps
       @properties[key] = value
     end
 
+    def default_property_for(key, default: nil)
+      property = self.class.find_property(key)
+      property.default_for(self, default:)
+    end
+
     def flat_errors
       @flat_errors ||= FlatErrors.new(self)
     end
@@ -228,11 +233,15 @@ module RapidProps
         properties[id].present?
       end
 
-      def change_property_default(property_id, value)
-        find_property(property_id) # ensure it's valid
+      def change_property_default(property_id, default)
+        property = find_property(property_id)
+
+        # raise an error if value is invalid
+        # (unless it's dynamic in which we can't know that yet)
+        property.parse(default) unless property.dynamic?(default)
 
         define_method :"default_#{property_id}" do
-          value
+          default_property_for(property_id, default:)
         end
       end
     end

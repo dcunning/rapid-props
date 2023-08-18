@@ -58,13 +58,13 @@ module RapidProps
         raise MethodAlreadyExistsError, "#{property.reader_name} method exists"
       end
 
-      define_method(property.reader_name) do
+      define_method property.reader_name do
         read_property(property.id)
       end
     end
 
     def define_writer(property)
-      define_method(property.writer_name) do |value|
+      define_method property.writer_name do |value|
         write_property(property.id, value)
       end
     end

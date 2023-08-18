@@ -154,12 +154,29 @@ RSpec.describe RapidProps::Property, type: :property do
       expect(subclass.new.id).to eql("test")
     end
 
+    it "allows changing the default value to a proc" do
+      subclass = Class.new(klass) do
+        change_property_default :id, -> { "test" }
+      end
+
+      expect(subclass.new.id).to eql("test")
+      expect(klass.new.id).to eql(nil)
+    end
+
     it "raises an error when calling #change_property_default with an unknown property id" do
       expect{
         Class.new(klass) do
           change_property_default :foo, "test"
         end
       }.to raise_error(RapidProps::UnknownPropertyError)
+    end
+
+    it "raises an error when calling #change_property_default with an invalid property value" do
+      expect{
+        Class.new(klass) do
+          change_property_default :id, []
+        end
+      }.to raise_error(RapidProps::InvalidPropertyError)
     end
 
     it "raises InvalidPropertyError when the default function provides an invalid value" do

@@ -81,14 +81,15 @@ module RapidProps
 
         define_reader(prop)
         define_writer(prop)
+
+        # see +validates_inclusion_of+ below:
+        # validating a boolean value requires custom logic
         add_property(prop, skip_validation: true)
 
-        alias_method "#{prop.reader_name}?", prop.reader_name
+        # https://api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html#method-i-validates_presence_of
+        validates_inclusion_of prop.reader_name, in: [true, false] if prop.required?
 
-        if prop.required?
-          # https://api.rubyonrails.org/classes/ActiveModel/Validations/HelperMethods.html#method-i-validates_presence_of
-          validates_inclusion_of prop.reader_name, in: [true, false]
-        end
+        alias_method "#{prop.reader_name}?", prop.reader_name
 
         prop
       end

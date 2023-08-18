@@ -171,13 +171,13 @@ module RapidProps
         define_build_method(prop)
 
         define_method :"#{id}_properties" do
-          read_property(id)&.properties
+          read_embeds_one_property(id)
         end
 
         validation_method = :"validate_embeds_one_#{id}"
         validate(validation_method)
-        define_method(validation_method) do
-          validate_embeds_one(id)
+        define_method validation_method do
+          validate_embeds_one_property(id)
         end
 
         add_property(prop)
@@ -188,18 +188,6 @@ module RapidProps
 
     private
 
-      def define_embeds_one_writer(property)
-        klass.define_method(property.writer_name) do |value|
-          value = nil if value == false
-          value = {} if value == true
-
-          raise TypeError, value unless property.valid_type?(value)
-
-          existing = read_property(property.id)
-          existing && value ? existing.properties = value : write_property(property.id, value)
-        end
-      end
-
       def define_child_class(class_name, superclass: nil, extends: [], &block)
         Class.new(superclass || EmbeddedChild).tap do |k|
           klass.const_set(class_name, k)
@@ -209,20 +197,48 @@ module RapidProps
         end
       end
 
+      def define_embeds_one_writer(property)
+        define_method property.writer_name do |value|
+          write_embeds_one_property(property.id, value)
+        end
+      end
+
       def define_build_method(prop)
-        prop.klass.define_method :"build_#{prop.id}" do |properties = {}|
-          write_property(prop.id, prop.child_class.new(**properties))
+        define_method :"build_#{prop.id}" do |properties = {}|
+          build_embeds_one_property(prop.id, properties)
         end
       end
     end
 
     # :nodoc:
     module InstanceMethods
-      def validate_embeds_one(id)
+      def read_embeds_one_property(id)
+        read_property(id)&.properties
+      end
+
+      def validate_embeds_one_property(id)
         child = read_property(id)
         return if child.nil? || child.valid?
 
         errors.add(id, :invalid)
+      end
+
+      # requires special code to support boolean values
+      # which can specify whether the relationship exists.
+      def write_embeds_one_property(id, value)
+        value = nil if value == false
+        value = {} if value == true
+
+        property = self.class.find_property(id)
+        raise TypeError, value unless property.valid_type?(value)
+
+        existing = read_property(property.id)
+        existing && value ? existing.properties = value : write_property(property.id, value)
+      end
+
+      def build_embeds_one_property(id, value)
+        property = self.class.find_property(id)
+        write_property(id, property.child_class.new(**value))
       end
     end
   end

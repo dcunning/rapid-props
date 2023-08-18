@@ -118,7 +118,7 @@ module RapidProps
         else
           raise NotImplementedError if !@property.key || block_given?
 
-          # OPTIMIZE
+          # TODO: OPTIMIZE
           find { |elem| elem.send(@property.key) == key }
         end
       end
@@ -232,13 +232,13 @@ module RapidProps
 
         unless scalar
           define_method :"#{prop.reader_name}_properties" do
-            read_property(id)&.map(&:properties)
+            read_embeds_many_property(id)
           end
 
           validation_method = :"validate_embeds_many_#{prop.reader_name}"
           validate(validation_method)
-          define_method(validation_method) do
-            validate_embeds_many(id)
+          define_method validation_method do
+            validate_embeds_many_property(id)
           end
         end
 
@@ -250,7 +250,11 @@ module RapidProps
 
     # :nodoc:
     module InstanceMethods
-      def validate_embeds_many(id)
+      def read_embeds_many_property(id)
+        read_property(id)&.map(&:properties)
+      end
+
+      def validate_embeds_many_property(id)
         send(id).each do |child|
           next if child.valid?
 

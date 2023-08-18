@@ -5,7 +5,6 @@ module RapidProps
     # Helps test Property subclasses in RSpec
     module PropertiesSupport
       def self.included(base)
-        base.metadata[:type] = :property
         base.extend DSL
         base.send :include, Matchers
 

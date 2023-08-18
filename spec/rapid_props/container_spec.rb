@@ -200,7 +200,7 @@ RSpec.describe RapidProps::Container do
       expect(post.errors.full_messages_with_paths).to include("blog_post.tags[0].name can't be blank")
     end
 
-    it "displays the key instead of the index for #embeds many when they are indexed by key" do
+    it "displays the key instead of the index for #embeds_many when they are indexed by key" do
       subclass.properties do |p|
         p.embeds_many :ads, key: :slug do |o|
           o.string :slug, null: false
