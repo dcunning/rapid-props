@@ -11,8 +11,10 @@ module RapidProps
     attr_reader :reader_name
     attr_reader :writer_name
     attr_reader :default
+    attr_reader :scalar
 
     alias_method :required?, :required
+    alias_method :scalar?, :scalar
 
     # TODO: support dynamic `null/required` value
     # rubocop:disable Metrics/ParameterLists
@@ -21,13 +23,15 @@ module RapidProps
                    reader_name: nil,
                    writer_name: (:"#{reader_name}=" if reader_name),
                    default: nil,
-                   null: true)
+                   null: true,
+                   scalar: true)
       @id = id
       @klass = klass
       @default = default
       @required = !null
       @reader_name = reader_name if klass
       @writer_name = writer_name if klass
+      @scalar = scalar
     end
     # rubocop:enable Metrics/ParameterLists
 

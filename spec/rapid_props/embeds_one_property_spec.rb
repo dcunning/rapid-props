@@ -338,19 +338,6 @@ RSpec.describe RapidProps::EmbedsOneProperty, type: :property do
       expect(page.errors.full_messages).to include("Author is invalid")
     end
 
-    it "flattens nested embeds_one errors" do
-      page.valid?
-      expect(page.flat_errors.details[:"author.email"]).to eql([{ error: :blank }])
-      expect(page.flat_errors.details[:author]).to eql([])
-    end
-
-    it "flattens nested embeds_many errors" do
-      page.tags.new
-      page.valid?
-      expect(page.flat_errors.details[:"tags[0].name"]).to eql([{ error: :blank }])
-      expect(page.flat_errors.details[:tags]).to eql([])
-    end
-
     it "is valid when all embedded children are valid" do
       page.author.email = "dan@rapidlybuilt.com"
       expect(page.valid?).to eql(true)

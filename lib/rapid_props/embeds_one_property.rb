@@ -23,7 +23,7 @@ module RapidProps
         raise ArgumentError, "child_class_name required" unless @child_class_name
       end
 
-      super(id, **props)
+      super(id, scalar: false, **props)
     end
 
     def parse(value, context: nil)

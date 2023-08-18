@@ -96,120 +96,89 @@ module RapidProps
       %(#<#{self.class.name} properties=#{properties(skip_defaults: true)}>)
     end
 
-    # :nodoc:
+    # Allows accessing individual errors on nested relationships
+    # instead of just seeing the parent relationship as +:invalid+
     class FlatErrors
+      EMPTY_ARRAY = [].freeze # :nodoc:
+
       def initialize(container)
         @container = container
       end
 
       def details
-        root = @container.errors.details.deep_dup
-        flatten_details(@container, root)
-        root
-      end
+        flat = {}
+        flat.default = EMPTY_ARRAY
 
-      # TODO: implement this too
-      # def full_messages
-      # end
+        each_error do |error, path|
+          key = flatten_path_for_details(path)
 
-    private
-
-      def flatten_details(parent, details)
-        details.to_a.each do |(attr, errors)|
-          next unless errors.include?(error: :invalid)
-
-          child_details = flatten_child(parent, attr)
-          next unless child_details&.any?
-
-          errors.delete(error: :invalid)
-          details.delete(attr) if details[attr].empty?
-
-          details.merge!(child_details)
+          flat[key] = [] if flat[key] == EMPTY_ARRAY
+          flat[key] << error.details
         end
-        details
+        flat
       end
 
-      def flatten_child(parent, attr)
-        child = parent.send(attr) if parent.respond_to?(attr)
-
-        if child.is_a?(Array)
-          h = {}
-          child.each_with_index do |c, i|
-            flatten_child_details(c, "#{attr}[#{i}]", h)
-          end
-          h
-        else
-          flatten_child_details(child, attr, {})
-        end
-      end
-
-      def flatten_child_details(child, attr, hash)
-        errors = child.errors if child.respond_to?(:errors)
-        details = errors.details.deep_dup if errors.respond_to?(:details)
-        return unless details
-
-        flatten_details(child, details).each do |k, v|
-          hash[:"#{attr}.#{k}"] = v
-        end
-        hash
-      end
-    end
-
-    # :nodoc:
-    class Errors < ActiveModel::Errors
-      attr_accessor :base_path
-
-      def full_messages_with_paths
-        gather(@base, base_path || default_base_path)
-      end
-
-    private
-
-      def default_base_path
-        path = @base.class.name.split("::").last.underscore
-        path = "app" if path == "base"
-        path
-      end
-
-      def gather(obj, path)
+      def full_messages
         messages = []
-        obj.errors.details.each do |attr, errors|
-          errors.each do |error|
-            messages += gather_error(obj, "#{path}.#{attr}", attr, error)
-          end
+
+        each_error do |error, path|
+          messages << flatten_for_message(error, path)
         end
+
         messages
       end
 
-      def gather_error(obj, path, attr, error)
-        type = error[:error]
-        child = obj.send(attr) if type == :invalid
+    private
 
-        case child
-        when Array
-          messages = []
-          child.each_with_index do |c2, i|
-            messages += gather(c2, append_array_path(child, c2, path, i))
-          end
-          messages
-        when NilClass
-          verb = obj.errors.generate_message(attr, error[:error], error.except(:error))
-          ["#{path} #{verb}"]
-        else
-          gather(child, path)
+      def each_error(container = @container, path = [], &)
+        container.errors.each do |error|
+          yield error, path + [error.attribute] if flat_error?(container, error)
+        end
+
+        container.class.properties.each do |property|
+          each_property_error(property, container, path, &) unless property.scalar?
         end
       end
 
-      def append_array_path(array, item, path, index)
-        property = array.property if array.respond_to?(:property)
-        key = property&.key
-        value = item.read_property(key) if key && item.respond_to?(:read_property)
+      def each_property_error(property, container, path, &)
+        type = property.class.name.demodulize.underscore
+        method_name = :"each_#{type}_error"
 
-        if value
-          "#{path}[#{value}]"
-        else
-          "#{path}[#{index}]"
+        send(method_name, property, container, path, &) if respond_to?(method_name, true)
+      end
+
+      def each_embeds_many_property_error(property, container, path, &)
+        container.read_property(property.id).each_with_index do |child, i|
+          key = property.key
+          suffix = (child.read_property(key) if key) || i
+
+          each_error(child, path + [:"#{property.id}[#{suffix}]"], &)
         end
+      end
+
+      def each_embeds_one_property_error(property, container, path, &)
+        child = container.read_property(property.id)
+        each_error(child, path + [property.id], &) if child
+      end
+
+      def flat_error?(container, error)
+        return true unless error.type == :invalid
+
+        property = container.class.properties[error.attribute]
+        !container_property?(property)
+      end
+
+      def container_property?(property)
+        property.is_a?(EmbedsManyProperty) || property.is_a?(EmbedsOneProperty)
+      end
+
+      def flatten_path_for_details(path)
+        path.join(".").to_sym
+      end
+
+      def flatten_for_message(error, path)
+        noun = flatten_path_for_details(path)
+        error.class.full_message(noun, error.message, error.base)
       end
     end
 

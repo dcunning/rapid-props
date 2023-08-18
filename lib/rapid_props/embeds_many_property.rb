@@ -10,10 +10,8 @@ module RapidProps
     attr_reader :key
     attr_reader :child_property
     attr_reader :polymorphic
-    attr_reader :scalar
 
     alias_method :polymorphic?, :polymorphic
-    alias_method :scalar?, :scalar
 
     with_options to: :@child_property do
       delegate :child_class
@@ -24,9 +22,8 @@ module RapidProps
       @key = key
       @polymorphic = polymorphic
       @child_property = child_property
-      @scalar = scalar
 
-      super(id, **props)
+      super(id, scalar:, **props)
     end
     # rubocop:enable Metrics/ParameterLists
 

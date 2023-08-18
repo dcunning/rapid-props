@@ -147,73 +147,73 @@ RSpec.describe RapidProps::Container do
     end
   end
 
-  describe "errors.full_messages" do
-    class self::BlogPost < self::Post
+  describe "flat_errors" do
+    class self::Page
+      include RapidProps::Container
+
       properties do |p|
-        p.date :date, null: false
+        p.string :id, null: false
 
         p.embeds_one :author do |o|
-          o.string :name, null: false
-          o.embeds_one :site do |n|
-            n.string :name, null: false
-          end
+          o.string :email, null: false
         end
 
         p.embeds_many :tags do |o|
           o.string :name, null: false
         end
-      end
-    end
 
-    let(:subclass) { self.class::BlogPost }
-    let(:post) { subclass.new }
-
-    it "allows you to change the base path" do
-      post.errors.base_path = "post"
-      expect(post.valid?).to be false
-      expect(post.errors.full_messages_with_paths).to include("post.date can't be blank")
-    end
-
-    it "displays the property path instead of the i18n'ed name" do
-      expect(post.valid?).to be false
-      expect(post.errors.full_messages_with_paths).to not_include("Date can't be blank")
-        .and include("blog_post.date can't be blank")
-    end
-
-    it "displays an #embeds_one path in the error message" do
-      post.properties = { author: {} }
-      expect(post.valid?).to be false
-      expect(post.errors.full_messages_with_paths).to not_include("Author is invalid")
-        .and not_include("blog_post.author is invalid")
-        .and include("blog_post.author.name can't be blank")
-    end
-
-    it "displays children of children paths" do
-      post.properties = { author: { site: {} } }
-      expect(post.valid?).to be false
-      expect(post.errors.full_messages_with_paths).to include("blog_post.author.site.name can't be blank")
-    end
-
-    it "displays the index of #embeds_many relationships" do
-      post.properties = { tags: [{}] }
-      expect(post.valid?).to be false
-      expect(post.errors.full_messages_with_paths).to include("blog_post.tags[0].name can't be blank")
-    end
-
-    it "displays the key instead of the index for #embeds_many when they are indexed by key" do
-      subclass.properties do |p|
         p.embeds_many :ads, key: :slug do |o|
           o.string :slug, null: false
           o.string :title, null: false
         end
       end
+    end
 
-      post.properties = { ads: [{}] }
-      expect(post.valid?).to be false
-      expect(post.errors.full_messages_with_paths).to include("blog_post.ads[0].slug can't be blank")
+    let(:page) { self.class::Page.new(author: {}) }
 
-      post.ads[0].slug = "foo-bar"
-      expect(post.errors.full_messages_with_paths).to include(%(blog_post.ads[foo-bar].title can't be blank))
+    it "flattens top-level error details" do
+      page.valid?
+      expect(page.flat_errors.details[:id]).to eql([{ error: :blank }])
+    end
+
+    it "flattens embeds_one error details" do
+      page.valid?
+      expect(page.flat_errors.details[:"author.email"]).to eql([{ error: :blank }])
+      expect(page.flat_errors.details[:author]).to eql([])
+    end
+
+    it "flattens embeds_many error details" do
+      page.tags.new
+      page.valid?
+      expect(page.flat_errors.details[:"tags[0].name"]).to eql([{ error: :blank }])
+      expect(page.flat_errors.details[:tags]).to eql([])
+    end
+
+    it "flattens top-level error full messages" do
+      page.valid?
+      expect(page.flat_errors.full_messages).to include("Id can't be blank")
+    end
+
+    it "flattens embeds_one error details" do
+      page.valid?
+      expect(page.flat_errors.full_messages).to include("Author email can't be blank")
+      expect(page.flat_errors.full_messages).not_to include("Author is invalid")
+    end
+
+    it "flattens embeds_many error details" do
+      page.tags.new
+      page.valid?
+      expect(page.flat_errors.full_messages).to include("Tags[0] name can't be blank")
+      expect(page.flat_errors.full_messages).not_to include("Tags is invalid")
+    end
+
+    it "uses the key instead of the index for #embeds_many when they are indexed by key" do
+      page.properties = { ads: [{}] }
+      expect(page.valid?).to be false
+      expect(page.flat_errors.full_messages).to include("Ads[0] slug can't be blank")
+
+      page.ads[0].slug = "foo-bar"
+      expect(page.flat_errors.full_messages).to include("Ads[foo-bar] title can't be blank")
     end
   end
 end
