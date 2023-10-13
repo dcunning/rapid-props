@@ -18,7 +18,7 @@ Gem::Specification.new do |gem|
 
   gem.files = Dir["**/*"].grep(%r{^(README|bin/|data/|ext/|lib/|spec/|test/)})
 
-  spec.metadata = {
+  gem.metadata = {
     "rubygems_mfa_required" => "true",
   }
 

@@ -8,6 +8,9 @@ RSpec.describe RapidProps::Schema do
 
     properties do |p|
       p.string :id, null: false
+      p.embeds_one :author do |o|
+        o.string :name, null: false
+      end
       p.embeds_many :tags do |o|
         o.string :slug, null: false
       end
@@ -25,11 +28,9 @@ RSpec.describe RapidProps::Schema do
   end
 
   it "converts properties to strong_parameters" do
-    expect(klass.properties.strong_parameters).to eql([:id, { tags_properties: [:slug] }])
-  end
-
-  it "removes all unknown properties from a hash" do
-    expect(klass.properties.except_unknown(id: "foo", title: "Foo")).to eql(id: "foo")
+    expect(klass.properties.strong_parameters).to eql(
+      [:id, { author_properties: [:name], tags_properties: [:slug] }]
+    )
   end
 
   it "serializes properties into hash" do
@@ -37,6 +38,14 @@ RSpec.describe RapidProps::Schema do
       "type" => "string",
       "id" => "id",
       "required" => true,
+    }, {
+      "type" => "embeds_one",
+      "id" => "author",
+      "embedded" => [{
+        "type" => "string",
+        "id" => "name",
+        "required" => true,
+      }],
     }, {
       "type" => "embeds_many",
       "id" => "tags",
@@ -46,5 +55,35 @@ RSpec.describe RapidProps::Schema do
         "required" => true,
       }],
     }])
+  end
+
+  describe "#except_unknown" do
+    it "removes all unknown properties from a hash" do
+      expect(klass.properties.except_unknown(id: "foo", title: "Foo")).to eql(id: "foo")
+    end
+
+    it "removes unknown properties from embeds_one hashes" do
+      expect(klass.properties.except_unknown(id: "foo", author: { name: "John", email: "foo" })).to eql(
+        id: "foo", author: { name: "John" },
+      )
+    end
+
+    it "removes unknown properties from embeds_many arrays" do
+      expect(klass.properties.except_unknown(id: "foo", tags: [{ slug: "foo", title: "Foo" }])).to eql(
+        id: "foo", tags: [{ slug: "foo" }],
+      )
+    end
+
+    it "doesn't raise an error when given a non-array for embeds_one" do
+      expect(klass.properties.except_unknown(id: "foo", author: "foo")).to eql(
+        id: "foo", author: "foo",
+      )
+    end
+
+    it "doesn't raise an error when given a non-array for embeds_many" do
+      expect(klass.properties.except_unknown(id: "foo", tags: "foo")).to eql(
+        id: "foo", tags: "foo",
+      )
+    end
   end
 end

@@ -57,8 +57,7 @@ module RapidProps
         value = hash[key]
         prop = self[key]
 
-        # TODO: recursively remove unknown properties
-        result[key] = value if prop
+        result[key] = prop.except_unknown_value(value) if prop
       end
     end
     alias_method :slice_known, :except_unknown

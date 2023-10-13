@@ -72,6 +72,10 @@ module RapidProps
       id
     end
 
+    def except_unknown_value(value)
+      value
+    end
+
     def to_hash
       { type: self.class.type, id: }.tap do |h|
         if @default

@@ -13,7 +13,7 @@ module RapidProps
         # HACK: goes here to override the errors method
         # added by ActiveModel::Validations
         def errors
-          @errors ||= Errors.new(self)
+          @errors ||= ActiveModel::Errors.new(self)
         end
       end
     end

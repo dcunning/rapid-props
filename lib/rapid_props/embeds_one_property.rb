@@ -57,6 +57,12 @@ module RapidProps
       { "#{id}_properties": child_class.properties.strong_parameters }
     end
 
+    def except_unknown_value(value)
+      return value unless value.is_a?(Hash)
+
+      child_class.properties.except_unknown(value)
+    end
+
     def as_json(options = {})
       super(options).reverse_merge("embedded" => child_class.properties.as_json(options))
     end
