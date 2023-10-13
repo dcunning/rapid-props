@@ -22,7 +22,6 @@ Gem::Specification.new do |gem|
     "rubygems_mfa_required" => "true",
   }
 
-  gem.add_dependency "activemodel", ">= 7.0"
-  gem.add_dependency "activesupport", ">= 7.0"
+  gem.add_dependency "activemodel", ">= 7.1"
   gem.add_dependency "zeitwerk", "~> 2.4"
 end

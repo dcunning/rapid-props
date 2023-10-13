@@ -5,6 +5,8 @@ require "active_support/core_ext/object/deep_dup"
 require "active_support/core_ext/object/with_options"
 require "active_support/hash_with_indifferent_access"
 require "active_support/descendants_tracker"
+require "active_support/deprecation"
+require "active_support/deprecator"
 
 require "active_support/concern"
 require "active_model/serialization"
