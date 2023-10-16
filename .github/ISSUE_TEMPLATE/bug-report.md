@@ -25,7 +25,7 @@ gemfile(true) do
 
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-  gem "rapid-props", git: "https://github.com/dcunning/rapid-props.git", branch: "master"
+  gem "rapid-props", git: "https://github.com/dcunning/rapid-props.git", branch: "main"
   gem "minitest"
 end
 

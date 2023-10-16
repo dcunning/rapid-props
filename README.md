@@ -17,7 +17,7 @@
 Start by including `rapid-props` in your Gemfile:
 
 ```ruby
-gem 'rapid-props', git: 'https://github.com/dcunning/rapid-props.git', branch: 'master'
+gem 'rapid-props', git: 'https://github.com/dcunning/rapid-props.git', branch: 'main'
 ```
 
 Then run `bundle install`.
