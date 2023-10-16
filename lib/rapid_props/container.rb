@@ -10,6 +10,8 @@ module RapidProps
 
         delegate :as_json, to: :properties
 
+        validate :validates_property_values
+
         # HACK: goes here to override the errors method
         # added by ActiveModel::Validations
         def errors
@@ -68,11 +70,20 @@ module RapidProps
     def write_property(key, value)
       key = key.to_sym
       property = self.class.find_property(key)
+      @properties ||= {}
 
       value = property.parse(value, context: self) unless value.nil?
-
-      @properties ||= {}
       @properties[key] = value
+
+    rescue RapidProps::InvalidPropertyError => e
+      if allow_writing_invalid_properties?
+        @invalid_properties ||= {}
+        @invalid_properties[key] = { error: e.to_sym }
+
+        @properties[key] = value
+      else
+        raise e
+      end
     end
 
     def default_property_for(key, default: nil)
@@ -90,10 +101,26 @@ module RapidProps
       end
     end
 
+    def allow_writing_invalid_properties?
+      self.class.allow_writing_invalid_properties?
+    end
+
     def inspect
       # defaults can cause `SystemStackError` depending on what they access
       # so let's just skip them.
       %(#<#{self.class.name} properties=#{properties(skip_defaults: true)}>)
+    end
+
+  private
+
+    def validates_property_values
+      @invalid_properties&.each do |key, value|
+        errors.add(key, value[:error], **value.except(:error))
+      end
+    end
+
+    def reset_invalid_properties
+      @invalid_properties = nil
     end
 
     # Allows accessing individual errors on nested relationships
@@ -212,6 +239,14 @@ module RapidProps
         define_method :"default_#{property_id}" do
           default_property_for(property_id, default:)
         end
+      end
+
+      def allow_writing_invalid_properties?
+        properties.allow_writing_invalid_properties?
+      end
+
+      def allow_writing_invalid_properties=(val)
+        properties.allow_writing_invalid_properties = val
       end
     end
   end

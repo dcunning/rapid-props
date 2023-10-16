@@ -80,6 +80,18 @@ module RapidProps
       arr
     end
 
+    def allow_writing_invalid_properties?
+      if @allow_writing_invalid_properties.nil? && @parent
+        @parent.allow_writing_invalid_properties?
+      else
+        @allow_writing_invalid_properties
+      end
+    end
+
+    def allow_writing_invalid_properties=(val)
+      @allow_writing_invalid_properties = val
+    end
+
     def to_hash
       @delegate.clone
     end

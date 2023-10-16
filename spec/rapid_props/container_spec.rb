@@ -131,6 +131,53 @@ RSpec.describe RapidProps::Container do
     end
   end
 
+  describe "allow_writing_invalid_properties" do
+    class self::BlogPost < self::Post
+      properties do |p|
+        p.enum :category, choices: %w[ living politics technology ]
+      end
+
+      def reload
+        reset_invalid_properties
+      end
+    end
+
+    let(:subclass) { self.class::BlogPost }
+    let(:invalid_post) { subclass.new(id: []) }
+
+    before { subclass.allow_writing_invalid_properties = true }
+
+    it "knows that it allows writing invalid properties" do
+      expect(subclass.allow_writing_invalid_properties?).to eql(true)
+      expect(invalid_post.allow_writing_invalid_properties?).to eql(true)
+    end
+
+    it "doesn't raise an error when initializing the invalid object" do
+      expect{ invalid_post }.not_to raise_error
+    end
+
+    it "returns the invalid property" do
+      expect(invalid_post.id).to eql([])
+    end
+
+    it "knows the object is invalid and why" do
+      expect(invalid_post.valid?).to eql(false)
+      expect(invalid_post.errors.details[:id]).to include(error: :invalid_property)
+    end
+
+    it "allows subclasses to reset invalid properties" do
+      invalid_post.reload
+      expect(invalid_post.valid?).to eql(false)
+      expect(invalid_post.errors.details[:id]).not_to include(error: :invalid_property)
+    end
+
+    it "uses a different error symbol when subclassing InvalidPropertyError" do
+      invalid_post.category = "unknown"
+      expect(invalid_post.valid?).to eql(false)
+      expect(invalid_post.errors.details[:category]).to include(error: :unknown_enum)
+    end
+  end
+
   describe "validate" do
     class self::BlogPost < self::Post
       properties do |p|
@@ -144,6 +191,10 @@ RSpec.describe RapidProps::Container do
       post = subclass.new
       expect(post.valid?).to be false
       expect(post.errors.details[:date]).to include(error: :blank)
+    end
+
+    it "raises an InvalidPropertyError when given a bad type" do
+      expect{subclass.new(id: [])}.to raise_error(RapidProps::InvalidPropertyError)
     end
   end
 

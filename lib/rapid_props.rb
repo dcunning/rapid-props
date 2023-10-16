@@ -25,7 +25,20 @@ loader.ignore(File.join(lib_directory, "rapid_props/version.rb"))
 loader.setup # ready!
 
 module RapidProps
-  class Error < StandardError; end
+  class Error < StandardError
+    def to_sym
+      self.class.to_sym
+    end
+
+    # describe the error as a symbol
+    def self.to_sym
+      @to_sym ||= begin
+        error = name.demodulize.underscore
+        error = error[0..-" _error".length] if error.end_with?("_error")
+        error.to_sym
+      end
+    end
+  end
   class UnknownPropertyError < Error; end
   class KeyNotFoundError < Error; end
   class PropertyAlreadyExists < Error; end

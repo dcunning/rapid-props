@@ -17,7 +17,7 @@
 Start by including `rapid-props` in your Gemfile:
 
 ```ruby
-gem 'rapid-props'
+gem 'rapid-props', git: 'https://github.com/dcunning/rapid-props.git', branch: 'master'
 ```
 
 Then run `bundle install`.
@@ -46,6 +46,7 @@ class BlogPost
   properties do |p|
     p.string :slug, null: false
     p.string :title, null: false
+    p.enum :category, choices: %w[ living politics technology ]
     p.date :publish_date
     p.boolean :has_comments, default: false, null: false
 
@@ -58,20 +59,43 @@ class BlogPost
     end
   end
 end
+
+# initializes an object w/ all associations
+BlogPost.new(
+  slug: "dropdown-tutorial",
+  title: "Tutorial: Dropdowns",
+  category: "technology",
+  publish_date: "2023-10-16",
+  tags: [{ slug: "ruby-on-rails" }],
+  author: { name: "John Doe" },
+)
+
+# raises RapidProps::UnknownPropertyError
+BlogPost.new(foo: "bar")
 ```
 
-For a complete list of the generators, see [Generators](#generators).
+### allow_writing_invalid_properties
 
-#### A note about the Generators versions
-
-If you get a `uninitialized constant Faker::[some_class]` error, your version of
-the gem is behind main.
-
-To make sure that your gem is the one
-documented here, change the line in your Gemfile to:
+By default set to `false` meaning the property's setter method will raise an error
+when given an invalid property value. When set to `true`, invalid property values will
+not raise an error inside the setter method, but will note an error when validating
+the record like `ActiveRecord`.
 
 ```ruby
-gem 'rapid-props', git: 'https://github.com/dcunning/rapid-props.git', branch: 'master'
+# all raise RapidProps::InvalidPropertyError
+BlogPost.new(slug: ["about-us"])
+BlogPost.new(category: "unknown")
+BlogPost.new(tags: "ruby-on-rails")
+
+BlogPost.allow_writing_invalid_properties = true
+
+post = BlogPost.new(slug: ["about-us"])
+post.slug
+# => ["about-us"]
+post.valid?
+# => false
+post.errors.details
+# => { slug: [{ error: :invalid_property }]}
 ```
 
 ## Contributing
