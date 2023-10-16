@@ -46,4 +46,22 @@ RSpec.describe RapidProps::DecimalProperty, type: :property do
       expect{instance.amount = 5.2}.to change{instance.amount}.from(nil).to(5.2)
     end
   end
+
+  describe "precision and scale" do
+    let(:amount) { builder.decimal(:price, precision: 10, scale: 2) }
+
+    it "exposes current values of both" do
+      expect(amount.precision).to eql(10)
+      expect(amount.scale).to eql(2)
+    end
+
+    it "rounds values when using more scale than there is available" do
+      expect(amount.parse("200.556")).to eql(200.56)
+      expect(amount.parse(200.556)).to eql(200.56)
+    end
+
+    it "pads the decimal points to the expected scale" do
+      expect(amount.serialize(200)).to eql("200.00")
+    end
+  end
 end

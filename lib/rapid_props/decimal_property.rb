@@ -7,27 +7,49 @@ module RapidProps
 
     REGEX = /\A[-+]?\d+(\.\d+)?\Z/
 
+    with_options to: :@active_model_type do
+      delegate :precision
+      delegate :scale
+    end
+
+    def initialize(id, precision: nil, scale: nil, **props)
+      super(id, **props)
+
+      @active_model_type = ActiveModel::Type::Decimal.new(precision:, scale:)
+    end
+
     # rubocop:disable Lint/UnusedMethodArgument
     def parse(value, context: nil)
       case value
       when Numeric
-        value
+        @active_model_type.cast(value)
       when String
         raise InvalidPropertyError, value unless REGEX =~ value
 
-        value.to_f
+        @active_model_type.cast(value)
       else
         raise InvalidPropertyError, value
       end
     end
 
     def serialize(value, context: nil)
-      value
+      case value
+      when Numeric
+        return value unless scale
+
+        int = value.to_i
+        fraction = format("%0.#{scale}f", value - int)
+        "#{int}.#{fraction[2..]}"
+      else
+        value
+      end
     end
     # rubocop:enable Lint/UnusedMethodArgument
 
     # Defines decimal properties
     module Builder
+      # rubocop:disable Metrics/ParameterLists
+
       # Decimal property definition
       #
       # === Valid values
@@ -53,13 +75,14 @@ module RapidProps
       # [:method_name]
       #   The method used to access this property. By default it is the property's +id+. Especially useful
       #   when the property's name conflicts with built-in Ruby object methods (like +hash+ or +method+).
-      def decimal(id, default: nil, null: true, method_name: id)
-        # TODO: precision and scale
+      def decimal(id, default: nil, null: true, precision: nil, scale: nil, method_name: id)
         prop = DecimalProperty.new(
           id,
           klass:,
           default:,
           null:,
+          precision:,
+          scale:,
           reader_name: method_name,
         )
 
@@ -69,6 +92,7 @@ module RapidProps
 
         prop
       end
+      # rubocop:enable Metrics/ParameterLists
     end
   end
 end
