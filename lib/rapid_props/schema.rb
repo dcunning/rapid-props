@@ -4,6 +4,7 @@ module RapidProps
   # A set of property definitions.
   class Schema
     attr_reader :klass
+    attr_writer :allow_writing_invalid_properties
 
     with_options to: :@delegate do
       delegate :[]
@@ -86,10 +87,6 @@ module RapidProps
       else
         @allow_writing_invalid_properties
       end
-    end
-
-    def allow_writing_invalid_properties=(val)
-      @allow_writing_invalid_properties = val
     end
 
     def to_hash

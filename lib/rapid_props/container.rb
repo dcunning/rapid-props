@@ -74,16 +74,13 @@ module RapidProps
 
       value = property.parse(value, context: self) unless value.nil?
       @properties[key] = value
-
     rescue RapidProps::InvalidPropertyError => e
-      if allow_writing_invalid_properties?
-        @invalid_properties ||= {}
-        @invalid_properties[key] = { error: e.to_sym }
+      raise e unless allow_writing_invalid_properties?
 
-        @properties[key] = value
-      else
-        raise e
-      end
+      @invalid_properties ||= {}
+      @invalid_properties[key] = { error: e.to_sym }
+
+      @properties[key] = value
     end
 
     def default_property_for(key, default: nil)

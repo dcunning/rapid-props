@@ -25,7 +25,7 @@ loader.ignore(File.join(lib_directory, "rapid_props/version.rb"))
 loader.setup # ready!
 
 module RapidProps
-  class Error < StandardError
+  class Error < StandardError # :nodoc:
     def to_sym
       self.class.to_sym
     end
@@ -39,6 +39,7 @@ module RapidProps
       end
     end
   end
+
   class UnknownPropertyError < Error; end
   class KeyNotFoundError < Error; end
   class PropertyAlreadyExists < Error; end
