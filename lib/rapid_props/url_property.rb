@@ -11,9 +11,9 @@ module RapidProps
     def parse(value, context: nil)
       case value
       when URI::Generic
-        value
+        value.freeze
       when String
-        URI(value)
+        URI(value).freeze
       else
         raise InvalidPropertyError, value
       end

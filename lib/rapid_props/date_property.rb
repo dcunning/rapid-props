@@ -11,12 +11,12 @@ module RapidProps
     def parse(value, context: nil)
       case value
       when Date
-        value
+        value.freeze
       when String
         raise InvalidPropertyError, value unless REGEX =~ value
 
         begin
-          Date.parse(value)
+          Date.parse(value).freeze
         rescue ArgumentError
           raise InvalidPropertyError, value
         end

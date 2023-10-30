@@ -42,6 +42,7 @@ module RapidProps
 
     def properties=(properties)
       raise ArgumentError, "properties cannot be nil" unless properties
+      raise FrozenError if frozen?
 
       properties.each do |key, value|
         writer = "#{key}="
@@ -68,6 +69,8 @@ module RapidProps
     end
 
     def write_property(key, value)
+      raise FrozenError if frozen?
+
       key = key.to_sym
       property = self.class.find_property(key)
       @properties ||= {}
@@ -81,6 +84,14 @@ module RapidProps
       @invalid_properties[key] = { error: e.to_sym }
 
       @properties[key] = value
+    end
+
+    def freeze
+      super
+
+      @properties&.each do |key, value|
+        value.freeze if value.respond_to?(:freeze)
+      end
     end
 
     def default_property_for(key, default: nil)

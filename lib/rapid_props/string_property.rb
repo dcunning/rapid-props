@@ -9,9 +9,9 @@ module RapidProps
     def parse(value, context: nil)
       case value
       when String
-        value
+        value.freeze
       when Numeric, Symbol, Pathname
-        value.to_s
+        value.to_s.freeze
       else
         raise InvalidPropertyError, "#{value.inspect} (#{value.class})"
       end

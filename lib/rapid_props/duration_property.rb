@@ -16,9 +16,9 @@ module RapidProps
       when ActiveSupport::Duration
         raise InvalidPropertyError, value if value.parts.length > 1
 
-        value
+        value.freeze
       when String
-        self.class.parse_string(value)
+        self.class.parse_string(value).freeze
 
       else
         raise InvalidPropertyError, value

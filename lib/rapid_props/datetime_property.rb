@@ -9,11 +9,11 @@ module RapidProps
     def parse(value, context: nil)
       case value
       when Time
-        value
+        value.freeze
       when DateTime
-        value.to_time
+        value.to_time.freeze
       when String
-        parse_string(value)
+        parse_string(value).freeze
       else
         raise InvalidPropertyError, value
       end

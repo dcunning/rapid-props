@@ -198,6 +198,33 @@ RSpec.describe RapidProps::Container do
     end
   end
 
+  describe "freeze" do
+    class self::Page
+      include RapidProps::Container
+
+      properties do |p|
+        p.string :id, null: false
+      end
+    end
+
+    let(:instance) { self.class::Page.new }
+
+    it "knows whether it's frozen" do
+      expect{instance.freeze}.to change{instance.frozen?}.from(false).to(true)
+    end
+
+    it "throws a FrozenError when writing properties on a frozen instance" do
+      instance.id = "foo"
+      instance.freeze
+      expect{instance.id = "bar"}.to raise_error(FrozenError)
+    end
+
+    it "always freezes string properties without having to call freeze on the parent" do
+      instance.id = String.new("foo")
+      expect{instance.id.sub!("f", "b")}.to raise_error(FrozenError)
+    end
+  end
+
   describe "flat_errors" do
     class self::Page
       include RapidProps::Container

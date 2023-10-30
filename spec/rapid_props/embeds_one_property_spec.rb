@@ -107,6 +107,12 @@ RSpec.describe RapidProps::EmbedsOneProperty, type: :property do
     it "doesn't add the type when serializing" do
       expect(property.serialize(author)).to eql("name" => "Dan Cunning", "enabled" => nil)
     end
+
+    it "freezes the embeds_many when its container is frozen" do
+      page.freeze
+      expect{page.author = { name: "John Steinbeck" } }.to raise_error(FrozenError)
+      expect{author.name = "John Steinbeck"}.to raise_error(FrozenError)
+    end
   end
 
   describe "null: false" do

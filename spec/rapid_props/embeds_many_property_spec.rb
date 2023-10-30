@@ -14,7 +14,6 @@ RSpec.describe RapidProps::EmbedsOneProperty, type: :property do
       end
     end
 
-
     let(:klass) { self.class::Page }
     let(:property) { klass.find_property(:authors) }
     let(:author) { klass::Author.new(name: "Dan Cunning") }
@@ -57,6 +56,12 @@ RSpec.describe RapidProps::EmbedsOneProperty, type: :property do
 
     it "doesn't add the type when serializing" do
       expect(property.serialize([author])).to eql([{ "name" => "Dan Cunning" }])
+    end
+
+    it "freezes the embeds_many when its container is frozen" do
+      page.freeze
+      expect{page.authors = [{ name: "John Steinbeck" }] }.to raise_error(FrozenError)
+      expect{author.name = "John Steinbeck"}.to raise_error(FrozenError)
     end
   end
 

@@ -134,6 +134,11 @@ module RapidProps
         super
       end
 
+      def freeze
+        super
+        map(&:freeze)
+      end
+
       def key?(key)
         raise NotImplementedError unless @property.key
 
@@ -151,7 +156,7 @@ module RapidProps
       end
 
       def respond_to_missing?(method_id, _include_private = false)
-        method_id =~ /\A(.+)\?\Z/ || key?(method_id.to_s)
+        method_id =~ /\A(.+)\?\Z/ || (@property.key && key?(method_id.to_s))
       end
 
     private

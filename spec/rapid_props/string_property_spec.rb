@@ -24,6 +24,11 @@ RSpec.describe RapidProps::StringProperty, type: :property do
     it "raises an error when given an array" do
       expect{property.parse([])}.to raise_error(RapidProps::InvalidPropertyError)
     end
+
+    it "freezes the string so its value cannot be changed without the parent object knowing" do
+      s = String.new("foo") # use constructor to avoid `frozen_string_literal`
+      expect(property.parse(s).frozen?).to eql(true)
+    end
   end
 
   describe "serialize" do

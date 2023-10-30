@@ -20,7 +20,7 @@ module RapidProps
     def parse(value, context: nil)
       raise(UnknownEnumError, value) unless @choices.include?(value)
 
-      value
+      value.freeze
     end
 
     def serialize(value, context: nil)
