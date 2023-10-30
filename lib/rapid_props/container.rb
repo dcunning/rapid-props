@@ -88,10 +88,7 @@ module RapidProps
 
     def freeze
       super
-
-      @properties&.each do |key, value|
-        value.freeze if value.respond_to?(:freeze)
-      end
+      freeze_properties
     end
 
     def default_property_for(key, default: nil)
@@ -120,6 +117,12 @@ module RapidProps
     end
 
   private
+
+    def freeze_properties
+      @properties&.each do |_key, value|
+        value.freeze if value.respond_to?(:freeze)
+      end
+    end
 
     def validates_property_values
       @invalid_properties&.each do |key, value|
