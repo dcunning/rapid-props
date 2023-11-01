@@ -31,7 +31,10 @@ module RapidProps
     end
 
     def eql?(other)
-      other.instance_of?(self.class) && properties.eql?(other.properties)
+      other.instance_of?(self.class) && (
+        hash == other.hash ||
+        properties.eql?(other.properties)
+      )
     end
 
     def properties(skip_defaults: false)
