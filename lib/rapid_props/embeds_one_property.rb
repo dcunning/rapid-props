@@ -93,6 +93,8 @@ module RapidProps
     def define_child_class
       if child_class_name.is_a?(Proc)
         child_class_name.call
+      elsif child_class_name.is_a?(Class)
+        child_class_name
       elsif child_class_name.present?
         child_class_name.constantize
       end
@@ -163,7 +165,7 @@ module RapidProps
           id,
           klass:,
           child_class_name: class_name || (
-            !polymorphic && define_child_class(id.to_s.camelize, superclass:, &block).name
+            !polymorphic && define_child_class(id.to_s.camelize, superclass:, &block)
           ),
           default:,
           null:,
@@ -178,6 +180,12 @@ module RapidProps
 
         define_method :"#{id}_properties" do
           read_embeds_one_property(id)
+        end
+
+        # TODO: decide whether this should be only available
+        # if calling `accepts_nested_attributes_for`
+        define_method :"#{id}_properties=" do |props|
+          write_embeds_one_property(id, props)
         end
 
         validation_method = :"validate_embeds_one_#{id}"

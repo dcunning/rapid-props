@@ -76,6 +76,13 @@ RSpec.describe RapidProps::EmbedsOneProperty, type: :property do
       expect(page.author_properties).to eql(name: "Dan Cunning", enabled: nil)
     end
 
+    it "defines an attributes writer" do
+      expect{
+        page.author_properties = { name: "John Smith" }
+      }.to change{page.author.name}.from("Dan Cunning").to("John Smith")
+      .and not_change{page.author.enabled?}
+    end
+
     it "defines a build_* method for creating an instance" do
       page = klass.new
       page.build_author(name: "Dan Cunning")
@@ -112,6 +119,24 @@ RSpec.describe RapidProps::EmbedsOneProperty, type: :property do
       page.freeze
       expect{page.author = { name: "John Steinbeck" } }.to raise_error(FrozenError)
       expect{author.name = "John Steinbeck"}.to raise_error(FrozenError)
+    end
+
+    it "works for dynamically defined classes" do
+      page_class = Class.new.instance_eval do
+        include RapidProps::Container
+
+        properties do |p|
+          p.embeds_one :author do |o|
+            o.string :name
+            o.boolean :enabled
+          end
+        end
+
+        self
+      end
+
+      page = page_class.new(author: { name: "Dan", enabled: true })
+      expect(page.author.name).to eql("Dan")
     end
   end
 

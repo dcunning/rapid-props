@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module RapidProps
+  # rubocop:disable Metrics/ModuleLength
+
   # This is the base module for a class that contains properties.
   module Container
     def self.included(base)
@@ -22,6 +24,10 @@ module RapidProps
 
     def initialize(properties = {})
       self.properties = properties
+    end
+
+    def ==(other)
+      eql?(other)
     end
 
     def eql?(other)
@@ -261,4 +267,5 @@ module RapidProps
       end
     end
   end
+  # rubocop:enable Metrics/ModuleLength
 end

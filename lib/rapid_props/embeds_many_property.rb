@@ -232,7 +232,7 @@ module RapidProps
             klass:,
             polymorphic:,
             superclass:,
-            child_class_name: class_name || define_child_class(id.to_s.camelize.singularize, superclass:, &block).name,
+            child_class_name: class_name || define_child_class(id.to_s.camelize.singularize, superclass:, &block),
           ),
         )
 
@@ -243,6 +243,12 @@ module RapidProps
         unless scalar
           define_method :"#{prop.reader_name}_properties" do
             read_embeds_many_property(id)
+          end
+
+          # TODO: decide whether this should be only available
+          # if calling `accepts_nested_attributes_for`
+          define_method :"#{prop.reader_name}_properties=" do |values|
+            write_embeds_many_property(id, values)
           end
 
           validation_method = :"validate_embeds_many_#{prop.reader_name}"
@@ -262,6 +268,10 @@ module RapidProps
     module InstanceMethods
       def read_embeds_many_property(id)
         read_property(id)&.map(&:properties)
+      end
+
+      def write_embeds_many_property(id, values)
+        write_property(id, values)
       end
 
       def validate_embeds_many_property(id)

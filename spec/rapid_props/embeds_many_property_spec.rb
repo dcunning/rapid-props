@@ -2,7 +2,7 @@
 
 require "spec_helper"
 
-RSpec.describe RapidProps::EmbedsOneProperty, type: :property do
+RSpec.describe RapidProps::EmbedsManyProperty, type: :property do
   describe "implicitly defined class" do
     class self::Page
       include RapidProps::Container
@@ -31,8 +31,17 @@ RSpec.describe RapidProps::EmbedsOneProperty, type: :property do
       expect(property.strong_parameters).to eql(authors_properties: [:name])
     end
 
-    it "defines an attributes accessor" do
+    it "defines a properties reader" do
       expect(page.authors_properties).to eql([{ name: "Dan Cunning" }])
+    end
+
+    # note this behavior is different than ActiveRecord because
+    # this library doesn't know about IDs that uniquely specify
+    # which instances to keep, update, destroy, etc.
+    it "defines a properties writer that replaces the entire array" do
+      expect{
+        page.authors_properties = [{ name: "John Smith" }]
+      }.to change{page.authors.map(&:name)}.from(["Dan Cunning"]).to(["John Smith"])
     end
 
     it "describes itself in JSON" do
