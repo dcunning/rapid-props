@@ -54,3 +54,20 @@ jobs:
 
     - name: Run tests
       run: bundle exec rspec
+
+  release:
+    runs-on: ubuntu-latest
+    needs:
+      - lint
+      - test
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build and publish gem
+      uses: jstastny/publish-gem-to-github@master
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        owner: dcunning

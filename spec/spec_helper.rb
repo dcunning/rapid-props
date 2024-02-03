@@ -6,7 +6,7 @@ SimpleCov.start do
 end
 
 require "rapid_props"
-require "debug"
+require "debug" unless ENV.key?("GITHUB_ACTION")
 
 # ensure simplecov isn't missing anything
 Zeitwerk::Loader.eager_load_all
