@@ -128,7 +128,7 @@ module RapidProps
   private
 
     def freeze_properties
-      @properties&.each do |_key, value|
+      @properties&.each_value do |value|
         value.freeze if value.respond_to?(:freeze)
       end
     end
