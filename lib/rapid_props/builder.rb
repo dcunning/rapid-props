@@ -34,6 +34,7 @@ module RapidProps
     include IntegerProperty::Builder
     include PathnameProperty::Builder
     include StringProperty::Builder
+    include SymbolProperty::Builder
     include UrlProperty::Builder
   end
 end
