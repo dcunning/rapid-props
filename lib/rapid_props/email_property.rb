@@ -1,18 +1,19 @@
 # frozen_string_literal: true
 
+require "uri"
+
 module RapidProps
-  # Internal class used to parse and serialize string properties
+  # Internal class used to parse and serialize email properties
   class EmailProperty < Property
     TYPE = "email"
 
     # rubocop:disable Lint/UnusedMethodArgument
     def parse(value, context: nil)
-      case value
-      when String
-        value.freeze
-      else
+      unless value.is_a?(String) && URI::MailTo::EMAIL_REGEXP =~ value
         raise InvalidPropertyError, "#{value.inspect} (#{value.class})"
       end
+
+      value.freeze
     end
 
     def serialize(value, context: nil)
@@ -22,14 +23,14 @@ module RapidProps
 
     # :nodoc:
     module Builder
-      # Pathname property definition
+      # Email property definition
       #
       # === Valid values
       #
       # Values not listed below will raise an RapidProps::InvalidPropertyError error.
       #
       #   # valid values:
-      #   # any instance of String, Numeric, Symbol, or Pathname
+      #   # String of a valid email address
       #
       # === Options
       #
@@ -43,8 +44,8 @@ module RapidProps
       # [:method_name]
       #   The method used to access this property. By default it is the property's +id+. Especially useful
       #   when the property's name conflicts with built-in Ruby object methods (like +hash+ or +method+).
-      def pathname(id, default: nil, null: true, method_name: id)
-        prop = PathnameProperty.new(
+      def email(id, default: nil, null: true, method_name: id)
+        prop = EmailProperty.new(
           id,
           klass:,
           default:,

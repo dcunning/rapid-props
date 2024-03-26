@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module RapidProps
-  # Internal class used to parse and serialize string properties
+  # Internal class used to parse and serialize pathname properties
   class PathnameProperty < Property
     TYPE = "pathname"
 
@@ -43,24 +43,36 @@ module RapidProps
 
     def parse_value(value)
       value = value.to_s.strip
+      value = polish_prepended(value)
+      value = polish_appended(value)
 
+      Pathname.new(value)
+    end
+
+    def polish_prepended(value)
       if prepended_slash == true && value.slice(0) != "/"
         value = "/#{value}"
       elsif prepended_slash == false && value.slice(0) == "/"
         value = value[1..]
       end
 
+      value
+    end
+
+    def polish_appended(value)
       if appended_slash == true && value.slice(-1) != "/"
         value = "#{value}/"
       elsif appended_slash == false && value.slice(-1) == "/"
         value = value[0..-2]
       end
 
-      Pathname.new(value)
+      value
     end
 
     # :nodoc:
     module Builder
+      # rubocop:disable Metrics/ParameterLists
+
       # Pathname property definition
       #
       # === Valid values
@@ -99,6 +111,7 @@ module RapidProps
 
         prop
       end
+      # rubocop:enable Metrics/ParameterLists
     end
   end
 end

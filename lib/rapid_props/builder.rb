@@ -27,6 +27,7 @@ module RapidProps
     include DatetimeProperty::Builder
     include DecimalProperty::Builder
     include DurationProperty::Builder
+    include EmailProperty::Builder
     include EmbedsManyProperty::Builder
     include EmbedsOneProperty::Builder
     include EnumProperty::Builder
