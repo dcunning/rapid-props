@@ -32,6 +32,7 @@ module RapidProps
     include EnumProperty::Builder
     include HashProperty::Builder
     include IntegerProperty::Builder
+    include PathnameProperty::Builder
     include StringProperty::Builder
     include UrlProperty::Builder
   end
