@@ -11,6 +11,8 @@ Layout/AccessModifierIndentation:
   EnforcedStyle: outdent
 Layout/MultilineMethodCallBraceLayout:
   EnforcedStyle: new_line
+Layout/MultilineMethodCallIndentation:
+  EnforcedStyle: indented
 Metrics/AbcSize:
   Max: 25
   CountRepeatedAttributes: false
@@ -23,13 +25,15 @@ Style/AccessorGrouping:
   EnforcedStyle: separated
 Style/Alias:
   EnforcedStyle: prefer_alias_method
-# Style/Documentation:
-#   Enabled: false
+Style/Documentation:
+  Enabled: false
 Style/StringLiterals:
   EnforcedStyle: double_quotes
 Style/StringLiteralsInInterpolation:
   EnforcedStyle: double_quotes
 Style/TrailingCommaInArguments:
+  EnforcedStyleForMultiline: consistent_comma
+Style/TrailingCommaInArrayLiteral:
   EnforcedStyleForMultiline: consistent_comma
 Style/TrailingCommaInHashLiteral:
   EnforcedStyleForMultiline: consistent_comma

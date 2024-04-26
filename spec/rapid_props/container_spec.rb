@@ -82,6 +82,29 @@ RSpec.describe RapidProps::Container do
     end
   end
 
+  describe "with" do
+    class self::Author
+      include RapidProps::Container
+
+      properties do |p|
+        p.string :name
+        p.string :email
+      end
+    end
+
+    let(:instance) { self.class::Author.new(name: "John", email: "john@email.com") }
+
+    it "temporarily changes the values of the properties" do
+      instance.with name: "Sara", email: "sara@email.com" do
+        expect(instance.name).to eql("Sara")
+        expect(instance.email).to eql("sara@email.com")
+      end
+
+      expect(instance.name).to eql("John")
+      expect(instance.email).to eql("john@email.com")
+    end
+  end
+
   describe "inspect" do
     class self::BlogPost < self::Post
       properties do |p|

@@ -109,6 +109,17 @@ module RapidProps
       @flat_errors ||= FlatErrors.new(self)
     end
 
+    def with(**kargs)
+      prev = kargs.keys.each_with_object({}) do |k, h|
+        h[k] = send(k)
+      end
+
+      self.properties = kargs
+      yield
+    ensure
+      self.properties = prev
+    end
+
     def to_hash
       properties.transform_values do |value|
         value.respond_to?(:to_hash) ? value.to_hash : value
