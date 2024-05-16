@@ -23,7 +23,7 @@ module RapidProps
       @polymorphic = polymorphic
       @child_property = child_property
 
-      super(id, scalar:, **props)
+      super(id, scalar: scalar, **props)
     end
     # rubocop:enable Metrics/ParameterLists
 
@@ -31,7 +31,7 @@ module RapidProps
       case value
       when Array
         array = value.collect do |v|
-          child_property.parse(v, context:)
+          child_property.parse(v, context: context)
         end
         spawn_collection(array, context)
 
@@ -41,7 +41,7 @@ module RapidProps
         array = value.collect do |(k, v)|
           raise InvalidPropertyError, "expected Hash, got #{v.class}" unless v.is_a?(Hash)
 
-          child_property.parse(v.merge(key => k), context:)
+          child_property.parse(v.merge(key => k), context: context)
         end
         spawn_collection(array, context)
 
@@ -52,7 +52,7 @@ module RapidProps
 
     def serialize(value, context: nil)
       value.collect do |v|
-        child_property.serialize(v, context:)
+        child_property.serialize(v, context: context)
       end
     end
 
@@ -217,22 +217,25 @@ module RapidProps
 
         raise ArgumentError, "you cannot use class_name with a new properties block" if class_name && block_given?
 
+        child_class_name = class_name ||
+                           define_child_class(id.to_s.camelize.singularize, superclass: superclass, &block)
+
         prop = EmbedsManyProperty.new(
           id,
-          klass:,
-          default:,
-          null:,
+          klass: klass,
+          default: default,
+          null: null,
           reader_name: method_name,
 
-          key:,
-          polymorphic:,
-          scalar:,
+          key: key,
+          polymorphic: polymorphic,
+          scalar: scalar,
           child_property: EmbedsOneProperty.new(
             id,
-            klass:,
-            polymorphic:,
-            superclass:,
-            child_class_name: class_name || define_child_class(id.to_s.camelize.singularize, superclass:, &block),
+            klass: klass,
+            polymorphic: polymorphic,
+            superclass: superclass,
+            child_class_name: child_class_name,
           ),
         )
 

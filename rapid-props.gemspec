@@ -12,7 +12,7 @@ Gem::Specification.new do |gem|
   gem.email    = "dan@rapidlybuilt.com"
   gem.homepage = "https://rapidlybuilt.com"
   gem.summary  = "Defining a schema for attributes in a Plain-Old-Ruby-Object"
-  gem.required_ruby_version = ">= 3.1"
+  gem.required_ruby_version = ">= 3.0"
 
   gem.description = gem.summary
 

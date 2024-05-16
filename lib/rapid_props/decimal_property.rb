@@ -15,7 +15,7 @@ module RapidProps
     def initialize(id, precision: nil, scale: nil, **props)
       super(id, **props)
 
-      @active_model_type = ActiveModel::Type::Decimal.new(precision:, scale:)
+      @active_model_type = ActiveModel::Type::Decimal.new(precision: precision, scale: scale)
     end
 
     # rubocop:disable Lint/UnusedMethodArgument
@@ -78,11 +78,11 @@ module RapidProps
       def decimal(id, default: nil, null: true, precision: nil, scale: nil, method_name: id)
         prop = DecimalProperty.new(
           id,
-          klass:,
-          default:,
-          null:,
-          precision:,
-          scale:,
+          klass: klass,
+          default: default,
+          null: null,
+          precision: precision,
+          scale: scale,
           reader_name: method_name,
         )
 

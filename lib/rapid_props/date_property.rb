@@ -56,9 +56,9 @@ module RapidProps
       def date(id, default: nil, null: true, method_name: id)
         prop = DateProperty.new(
           id,
-          klass:,
-          default:,
-          null:,
+          klass: klass,
+          default: default,
+          null: null,
           reader_name: method_name,
         )
 

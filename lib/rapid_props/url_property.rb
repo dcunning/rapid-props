@@ -52,9 +52,9 @@ module RapidProps
       def url(id, default: nil, null: true, method_name: id)
         prop = UrlProperty.new(
           id,
-          klass:,
-          default:,
-          null:,
+          klass: klass,
+          default: default,
+          null: null,
           reader_name: method_name,
         )
 

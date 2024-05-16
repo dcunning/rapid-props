@@ -61,10 +61,10 @@ module RapidProps
       def enum(id, choices:, default: nil, null: true, method_name: id)
         prop = EnumProperty.new(
           id,
-          klass:,
-          choices:,
-          default:,
-          null:,
+          klass: klass,
+          choices: choices,
+          default: default,
+          null: null,
           reader_name: method_name,
         )
 

@@ -102,7 +102,7 @@ module RapidProps
 
     def default_property_for(key, default: nil)
       property = self.class.find_property(key)
-      property.default_for(self, default:)
+      property.default_for(self, default: default)
     end
 
     def flat_errors
@@ -188,35 +188,35 @@ module RapidProps
 
     private
 
-      def each_error(container = @container, path = [], &)
+      def each_error(container = @container, path = [], &block)
         container.errors.each do |error|
           yield error, path + [error.attribute] if flat_error?(container, error)
         end
 
         container.class.properties.each do |property|
-          each_property_error(property, container, path, &) unless property.scalar?
+          each_property_error(property, container, path, &block) unless property.scalar?
         end
       end
 
-      def each_property_error(property, container, path, &)
+      def each_property_error(property, container, path, &block)
         type = property.class.name.demodulize.underscore
         method_name = :"each_#{type}_error"
 
-        send(method_name, property, container, path, &) if respond_to?(method_name, true)
+        send(method_name, property, container, path, &block) if respond_to?(method_name, true)
       end
 
-      def each_embeds_many_property_error(property, container, path, &)
+      def each_embeds_many_property_error(property, container, path, &block)
         container.read_property(property.id).each_with_index do |child, i|
           key = property.key
           suffix = (child.read_property(key) if key) || i
 
-          each_error(child, path + [:"#{property.id}[#{suffix}]"], &)
+          each_error(child, path + [:"#{property.id}[#{suffix}]"], &block)
         end
       end
 
-      def each_embeds_one_property_error(property, container, path, &)
+      def each_embeds_one_property_error(property, container, path, &block)
         child = container.read_property(property.id)
-        each_error(child, path + [property.id], &) if child
+        each_error(child, path + [property.id], &block) if child
       end
 
       def flat_error?(container, error)
@@ -242,14 +242,14 @@ module RapidProps
 
     # :nodoc:
     module ClassMethods
-      def properties(&)
+      def properties(&block)
         @properties ||= Schema.new(self)
-        def_properties(&) if block_given?
+        def_properties(&block) if block_given?
         @properties
       end
 
-      def def_properties(&)
-        Builder.new(self, schema: properties, &)
+      def def_properties(&block)
+        Builder.new(self, schema: properties, &block)
       end
 
       def find_property(id)
@@ -268,7 +268,7 @@ module RapidProps
         property.parse(default) unless property.dynamic?(default)
 
         define_method :"default_#{property_id}" do
-          default_property_for(property_id, default:)
+          default_property_for(property_id, default: default)
         end
       end
 

@@ -6,7 +6,7 @@ AllCops:
   Exclude:
   - spec/**/*
   - tmp/**/*
-  TargetRubyVersion: "3.1"
+  TargetRubyVersion: "3.0"
 Layout/AccessModifierIndentation:
   EnforcedStyle: outdent
 Layout/MultilineMethodCallBraceLayout:

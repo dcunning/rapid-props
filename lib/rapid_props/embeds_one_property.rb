@@ -163,14 +163,14 @@ module RapidProps
 
         prop = EmbedsOneProperty.new(
           id,
-          klass:,
+          klass: klass,
           child_class_name: class_name || (
-            !polymorphic && define_child_class(id.to_s.camelize, superclass:, &block)
+            !polymorphic && define_child_class(id.to_s.camelize, superclass: superclass, &block)
           ),
-          default:,
-          null:,
+          default: default,
+          null: null,
           reader_name: method_name,
-          polymorphic:,
+          polymorphic: polymorphic,
           superclass: (superclass if polymorphic),
         )
 

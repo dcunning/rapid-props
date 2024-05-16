@@ -49,9 +49,9 @@ module RapidProps
 
         prop = HashProperty.new(
           id,
-          klass:,
-          default:,
-          null:,
+          klass: klass,
+          default: default,
+          null: null,
           reader_name: method_name,
         )
 

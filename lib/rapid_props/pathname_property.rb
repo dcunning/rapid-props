@@ -97,11 +97,11 @@ module RapidProps
       def pathname(id, prepended_slash: nil, appended_slash: nil, default: nil, null: true, method_name: id)
         prop = PathnameProperty.new(
           id,
-          klass:,
-          default:,
-          null:,
-          prepended_slash:,
-          appended_slash:,
+          klass: klass,
+          default: default,
+          null: null,
+          prepended_slash: prepended_slash,
+          appended_slash: appended_slash,
           reader_name: method_name,
         )
 

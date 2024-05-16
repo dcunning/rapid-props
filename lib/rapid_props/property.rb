@@ -55,12 +55,12 @@ module RapidProps
         nil
       when Proc
         result = default_for_proc(default, context)
-        parse(result, context:)
+        parse(result, context: context)
       when Symbol
         result = context.send(default)
-        parse(result, context:)
+        parse(result, context: context)
       else
-        parse(default, context:)
+        parse(default, context: context)
       end
     rescue RapidProps::InvalidPropertyError => e
       return nil if result.nil?
@@ -77,7 +77,7 @@ module RapidProps
     end
 
     def to_hash
-      { type: self.class.type, id: }.tap do |h|
+      { type: self.class.type, id: id }.tap do |h|
         if @default
           h[:default] = begin
             case @default

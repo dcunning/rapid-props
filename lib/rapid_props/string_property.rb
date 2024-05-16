@@ -48,9 +48,9 @@ module RapidProps
       def string(id, default: nil, null: true, method_name: id)
         prop = StringProperty.new(
           id,
-          klass:,
-          default:,
-          null:,
+          klass: klass,
+          default: default,
+          null: null,
           reader_name: method_name,
         )
 
@@ -79,7 +79,7 @@ module RapidProps
       #   When explicitly +false+ this property will raise an error when setting the property to a +nil+
       #   or when the property value is not specified.
       def strings(id, default: nil, null: true)
-        embeds_many(id, default:, null:, class_name: "String", scalar: true)
+        embeds_many(id, default: default, null: null, class_name: "String", scalar: true)
       end
     end
   end
