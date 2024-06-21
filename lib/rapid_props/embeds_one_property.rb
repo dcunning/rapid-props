@@ -64,7 +64,7 @@ module RapidProps
     end
 
     def as_json(options = {})
-      super(options).reverse_merge("embedded" => child_class.properties.as_json(options))
+      super.reverse_merge("embedded" => child_class.properties.as_json(options))
     end
 
     def child_class
