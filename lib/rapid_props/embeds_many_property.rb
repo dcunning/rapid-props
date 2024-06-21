@@ -218,7 +218,10 @@ module RapidProps
         raise ArgumentError, "you cannot use class_name with a new properties block" if class_name && block_given?
 
         child_class_name = class_name ||
-                           define_child_class(id.to_s.camelize.singularize, superclass: superclass, &block)
+                           (
+                             (!polymorphic || superclass) &&
+                             define_child_class(id.to_s.camelize.singularize, superclass: superclass, &block)
+                           )
 
         prop = EmbedsManyProperty.new(
           id,

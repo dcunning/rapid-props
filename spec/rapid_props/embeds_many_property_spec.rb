@@ -101,6 +101,59 @@ RSpec.describe RapidProps::EmbedsManyProperty, type: :property do
     end
   end
 
+  describe "implicitly defined class without a superclass" do
+    class self::Comment < RapidProps::EmbeddedChild
+      properties do |p|
+        p.string :body
+      end
+    end
+
+    class self::Page
+      include RapidProps::Container
+
+      properties do |p|
+        p.embeds_many :comments, polymorphic: true
+      end
+    end
+
+    it "doesn't define a new subclass" do
+      expect(defined?(self.class::Page::Comment)).to be_falsey
+    end
+
+    it "allows instantializing any embedded property container" do
+      page = self.class::Page.new(comments: [{ type: self.class::Comment.name, body: "foo" }])
+      expect(page.comments.first.class).to eql(self.class::Comment)
+      expect(page.comments.first.body).to eql("foo")
+    end
+  end
+
+  describe "implicitly defined class for all instances in the array" do
+    class self::Comment < RapidProps::EmbeddedChild
+      properties do |p|
+        p.string :body
+      end
+    end
+
+    class self::Page
+      include RapidProps::Container
+
+      properties do |p|
+        p.string :comments_type
+        p.embeds_many :comments, polymorphic: true
+      end
+    end
+
+    it "doesn't define a new subclass" do
+      expect(defined?(self.class::Page::Comment)).to be_falsey
+    end
+
+    it "allows instantializing any embedded property container" do
+      page = self.class::Page.new(comments_type: self.class::Comment.name, comments: [{ body: "foo" }, { body: "bar" }])
+      expect(page.comments.map(&:class)).to eql([self.class::Comment] * 2)
+      expect(page.comments.map(&:body)).to eql(%w[foo bar])
+    end
+  end
+
   describe "explicitly defined class" do
     class self::Comment < RapidProps::EmbeddedChild
       properties do |p|

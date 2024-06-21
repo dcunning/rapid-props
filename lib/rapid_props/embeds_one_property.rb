@@ -102,17 +102,32 @@ module RapidProps
 
     def parse_hash_value(value, context)
       klass = child_class
-
-      if polymorphic?
-        klass = value[:type]&.constantize || child_class || superclass
-        ensure_superclass(klass) if superclass
-        value = value.except(:type)
-      end
+      klass, value = extract_polymorphic_class(value, context) if polymorphic?
 
       value = value.merge(parent: context) if context
       value = value.deep_symbolize_keys
 
       klass.new(**value)
+    end
+
+    # rubocop:disable Metrics/CyclomaticComplexity
+
+    def extract_polymorphic_class(value, context)
+      type = value[:type] || value["type"] || type_from_context(context)
+      klass = type&.constantize || child_class || superclass
+      ensure_superclass(klass) if superclass
+      value = value.except(:type, "type")
+
+      raise InvalidPropertyError, "type not specified: #{value.inspect}" unless klass
+
+      [klass, value]
+    end
+
+    # rubocop:enable Metrics/CyclomaticComplexity
+
+    def type_from_context(context)
+      prop_id = :"#{id}_type"
+      context&.read_property(prop_id)
     end
 
     # :nodoc:
